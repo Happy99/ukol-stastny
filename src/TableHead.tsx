@@ -1,4 +1,3 @@
-import React from 'react';
 
 type TableHead = {
     // nepouzivat any type, priradit types!

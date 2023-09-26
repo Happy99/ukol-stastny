@@ -1,5 +1,7 @@
-import React, { useState, useEffect, FunctionComponent } from 'react';
+import { useState, useEffect } from 'react';
 import { TableHead } from './TableHead';
+// import { css } from '@emotion/css'
+
 import './App.css';
 
 type ObjectType = {
@@ -9,6 +11,59 @@ type ObjectType = {
     colorIdentifier: string,
     // zde pridat dalsi props
 }
+const numberOfObjects = 10;
+
+const colorIdents = [{
+    ident: 'un',
+    props: {
+        color: 'red'
+    }
+}, {
+    ident: 'deux',
+    props: {
+        color: 'green'
+    }
+}, {
+    ident: 'trois',
+    props: {
+        color: 'blue'
+    }
+}]
+
+const alphabet = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+
+const getRandomNumber = (): number => {
+    const randomDecimal = Math.random();
+  
+    // Scale the random decimal to the range [0, 1, 2]
+    const randomNumber = Math.floor(randomDecimal * 3); // 3 because we want numbers from 0 to 2
+    return randomNumber;
+};
+
+const getRandomIntMinMax = (min: number, max: number) => {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min) + min); // The maximum is exclusive and the minimum is inclusive
+}
+
+const generateRandomWord = () => {
+    let randomWord: string = '';
+
+    alphabet.map(word => {
+        randomWord += alphabet[getRandomIntMinMax(0, alphabet.length)];
+    })
+
+    return randomWord;
+}
+
+const makeUniqueId = (base: String, i: String) => `${base}-${i}`;
+
+// vyresit colors: any - zkusit nadefinovat vlastni typ
+const randomColorIdentifier = (colors: any) => {
+    let randomArrayIndex = getRandomNumber();
+    // nekontroluju delku pole, vim, ze se vejdu
+    return colors[randomArrayIndex].ident;
+}   
 
 export default function App() {
 
@@ -18,35 +73,17 @@ export default function App() {
     const [nextColorIdentSort, setNextnextColorIdentSort] = useState<string>('ascending');
     const [nextIdSort, setNextIdSort] = useState<string>('ascending');
 
-    const colorIdents = [{
-        ident: 'un',
-        props: {
-            color: 'red'
-        }
-    }, {
-        ident: 'deux',
-        props: {
-            color: 'green'
-        }
-    }, {
-        ident: 'trois',
-        props: {
-            color: 'blue'
-        }
-    }]
-
     useEffect(() => {
 
         const newArray: ObjectType[] = [];
-        const numberOfObjects = 10;
         
         for (let i = 1; i <= numberOfObjects; i++) {
             let randomIdentForObject: string = randomColorIdentifier(colorIdents);
 
             newArray.push({
                 id: makeUniqueId('random', i.toString()),
-                name: '',
-                description: '',
+                name: generateRandomWord(),
+                description: generateRandomWord(),
                 colorIdentifier: randomIdentForObject,
             });
         }
@@ -54,34 +91,12 @@ export default function App() {
         setFilteredObjectsArray([...newArray]);
         setObjectsArray([...newArray]);
 
-    }, []); //na konci prazdne pole, projde tedy pouze jednou pri page load
-
-    const getRandomNumber = (): number => {
-        const randomDecimal = Math.random();
-      
-        // Scale the random decimal to the range [0, 1, 2]
-        const randomNumber = Math.floor(randomDecimal * 3); // 3 because we want numbers from 0 to 2
-        return randomNumber;
-    };
-
-    const makeUniqueId = (base: String, i: String) => `${base}-${i}`;
-
-    // vyresit colors: any - zkusit nadefinovat vlastni typ
-    const randomColorIdentifier = (colors: any) => {
-        let randomArrayIndex = getRandomNumber();
-        // nekontroluju delku pole, vim, ze se vejdu
-        return colors[randomArrayIndex].ident;
-    }    
+    }, []); //na konci prazdne pole, projde tedy pouze jednou pri page load 
 
     // filtruju podle barevneho identifikatoru
     const handleInputFilter = (inputValue: string) => {
         inputValue = inputValue.replace(/\s/g, ''); // odstranim mezery
         console.log('text z inputu: ' + inputValue);
-
-        // include asi snazsi, dalo by se dotahnout do lepsiho stavu
-        // const filteredResult = objectsArray.filter((item) =>
-        //     item.colorIdentifier.toLowerCase().includes(inputValue.toLowerCase())
-        // );
 
         // metoda filtr mi vrati pouze elementy, ktere splni podminku
         const filteredResult = objectsArray.filter((item) => 
@@ -98,10 +113,10 @@ export default function App() {
 
     // muze nastat to, ze se vypise oznacene policko, ktere kvuli fitru neni videt
     // po rerendru orig statu by bylo dobre projit oznacena pola a zase je oznacit - pripadne smazat z oznacenych
-    const handleTableDataClick = (target: any) => {
-        let cellColorIdent: string = target.parentElement.className;
+    const handleTableDataClick = (target: any, cellColorIdent: any, cellRowId: any) => {
+        // let cellColorIdent: string = target.parentElement.className;
         let cellColor: string = '';
-        let cellRowId: string = target.parentElement.getAttribute("data-row-id");
+        // let cellRowId: string = target.parentElement.getAttribute("data-row-id");
         let currentCellsIds: string[] = [...tableDataColoredCells];
 
         colorIdents.filter(iden => {
@@ -131,7 +146,7 @@ export default function App() {
             let index = currentCellsIds.indexOf(cellRowId);
             if (index !== -1) {
                 currentCellsIds.splice(index, 1);
-              }
+            }
 
             
             setTableDataColoredCells(currentCellsIds);
@@ -167,11 +182,11 @@ export default function App() {
                 <tbody>
 
                     {filteredObjectsArray.map((object) => (
-                        <tr className={object.colorIdentifier} data-row-id={object.id} key={object.id}>
-                            <td className='table-data-id' onClick={(e) => handleTableDataClick(e.target)}>{object.id}</td>
-                            <td className='table-data-name' onClick={(e) => handleTableDataClick(e.target)}>{object.name}</td>
-                            <td className='table-data-description' onClick={(e) => handleTableDataClick(e.target)}>{object.description}</td>
-                            <td className='table-data-colorIdentifier' onClick={(e) => handleTableDataClick(e.target)}>{object.colorIdentifier}</td>
+                        <tr key={object.id}>
+                            <td className='table-data-id' onClick={(e) => handleTableDataClick(e.target, object.colorIdentifier, object.id)}>{object.id}</td>
+                            <td className='table-data-name' onClick={(e) => handleTableDataClick(e.target, object.colorIdentifier, object.id)}>{object.name}</td>
+                            <td className='table-data-description' onClick={(e) => handleTableDataClick(e.target, object.colorIdentifier, object.id)}>{object.description}</td>
+                            <td className='table-data-colorIdentifier' onClick={(e) => handleTableDataClick(e.target, object.colorIdentifier, object.id)}>{object.colorIdentifier}</td>
                         </tr>
                     ))}
 
